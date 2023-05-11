@@ -1,3 +1,4 @@
+#Hola
 # Se importan las librerías necesarias
 import torch
 import open_clip
