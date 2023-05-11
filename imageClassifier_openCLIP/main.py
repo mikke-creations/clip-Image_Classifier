@@ -17,8 +17,8 @@ model, _, preprocess = open_clip.create_model_and_transforms(
 tokenizer = open_clip.get_tokenizer('ViT-H-14')
 
 # Mostrar información del modelo
-print("Modelo: ", model)
-print("Tokenizer: ", tokenizer)
+# print("Modelo: ", model)
+# print("Tokenizer: ", tokenizer)
 print("Dispositivo: ", device)
 print("Modelo cargado.")
 print("----------------------------------------")
