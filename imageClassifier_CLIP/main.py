@@ -11,6 +11,12 @@ from tkinter import filedialog
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
+# Mostrar información del modelo
+print("Modelo: ", model)
+print("Dispositivo: ", device)
+print("Modelo cargado.")
+print("----------------------------------------")
+
 ##############################################################################################################
 
 # Se pide la carpeta de imágenes
