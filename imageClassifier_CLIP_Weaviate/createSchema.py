@@ -19,6 +19,10 @@ class_img = {
         {
             'name': 'image',
             'dataType': ['blob']
+        },
+        {
+            'name': 'text',
+            'dataType': ['string']
         }
     ]
 }
@@ -27,3 +31,9 @@ class_img = {
 new_class = client.schema.create_class(class_img)
 
 
+# import weaviate
+
+# client = weaviate.Client("http://localhost:8080")
+
+# #Se borra la clase Imagen
+# client.schema.delete_class("Imagen")

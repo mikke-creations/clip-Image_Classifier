@@ -1,4 +1,5 @@
 import torch
+import glob
 import clip
 from PIL import Image
 from sentence_transformers import SentenceTransformer, util
@@ -122,45 +123,52 @@ if opcion == "1":
 elif opcion == '2':
     model = SentenceTransformer('clip-ViT-B-32')
 
-    #Elija la carpeta donde se encuentran las imágenes
+    # Get the path to the image folder
     image_folder = filedialog.askdirectory(
-        title="Selecciona la carpeta de imágenes")
-    print("Carpeta seleccionada: ", image_folder)
-    
-    # Se obtienen las imágenes de la carpeta
-    image_files = [f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'))]
-    
-    #Si no hay imágenes en la carpeta, se termina el programa
+        title="Select the image folder")
+
+    # Get all images in the image folder and its subfolders
+    image_files = []
+    for root, dirs, files in os.walk(image_folder):
+        for file in files:
+            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')):
+                image_files.append(os.path.join(root, file))
+
+    # If there are no images in the folder, exit the program
     if len(image_files) == 0:
-        print("No hay imágenes en la carpeta seleccionada.")
+        print("No images in the selected folder.")
         quit()
-    
-    #Se pide la frase a buscar
-    frase = input("Introduce la frase a buscar: ")
-    
-    #Se tokeniza la frase
+
+    # Get the phrase to search for
+    frase = input("Enter the phrase to search for: ")
+
+    # Tokenize the phrase
     frase_tokenizada = model.encode(frase, convert_to_tensor=True)
-    
-    #Se crea una lista para guardar los resultados
+
+    # Create a list to store the results
     resultados = []
-    
-    #Se recorren las imágenes
+
+    # Iterate over the images
     for image_file in image_files:
-        #Se obtiene la imagen
+        # Get the image path
         image_path = os.path.join(image_folder, image_file)
-        #Se obtiene el embedding de la imagen
+
+        # Get the image embedding
         imagen_embedding = model.encode(Image.open(image_path), convert_to_tensor=True)
-        #Se calcula la similitud entre la frase y la imagen
+
+        # Calculate the similarity between the phrase and the image
         similitud = util.pytorch_cos_sim(frase_tokenizada, imagen_embedding)
-        #Se añade el resultado a la lista
+
+        # Add the result to the list
         resultados.append([image_file, similitud.item()])
-    
-    #Se ordenan los resultados de mayor a menor
+
+    # Sort the results from highest to lowest similarity
     resultados.sort(key=lambda x: x[1], reverse=True)
-    
-    #Se muestra la imagen más similar
-    print("La imagen más similar es: ", resultados[0][0])
-    #Se abre la imagen
+
+    # Print the most similar image
+    print("The most similar image is: ", resultados[0][0])
+
+    # Open the image
     os.startfile(os.path.join(image_folder, resultados[0][0]))
 elif opcion == '3':
     #se pide input para salir del programa

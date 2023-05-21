@@ -5,13 +5,22 @@ from sentence_transformers import SentenceTransformer, util
 import os
 import shutil
 from tkinter import filedialog
+import base64
+import weaviate
+import io
+
+# initiate the Weaviate client
+client = weaviate.Client("http://localhost:8080")
+# Se crea una lista para las imagenes que se subiran a weaviate
+imagenesWeaviate = []
 
 ##############################################################################################################
 # Menú para elegir si buscar una imagen o si clasificar una carpeta de imágenes
 print("¿Qué desea hacer?")
 print("1. Clasificar una carpeta de imágenes")
-print("2. Buscar una imagen")
-print("3. Salir")
+print("2. Buscar una imagen con Weaviate")
+print("3. Buscar una imagen en carpeta")
+print("4. Salir")
 opcion = input("Introduce el número de la opción: ")
 
 if opcion == "1":
@@ -107,7 +116,18 @@ if opcion == "1":
 
         # Laetiqueta predicha se muestra en la consola
         print(f"Etiqueta predicha: {predicted_label}")
-
+        
+        # Se convierte la imagen a base64
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read())
+            encoded_string = encoded_string.decode('utf-8')
+            imagen = {
+                "image": encoded_string,
+                "label": predicted_label
+            }
+            # Se añade la imagen a la lista de imagenes que se subiran a weaviate
+            imagenesWeaviate.append(imagen)
+        
         # Se mueve la imagen a la carpeta correspondiente
         if not os.path.exists(os.path.join(output_folder, predicted_label)):
             os.makedirs(os.path.join(output_folder, predicted_label))
@@ -117,51 +137,81 @@ if opcion == "1":
         print("--------------------------------------------------")
 
     print("Proceso de clasificación de imágenes finalizado.")
+    
+    # Se suben las imagenes a weaviate
+    for imagen in imagenesWeaviate:
+        client.create_object(imagen, "Imagen")
+    
     # Se abre la carpeta de imágenes clasificadas
     os.startfile(output_folder)
 elif opcion == '2':
     model = SentenceTransformer('clip-ViT-B-32')
-
-    #Elija la carpeta donde se encuentran las imágenes
-    image_folder = filedialog.askdirectory(
-        title="Selecciona la carpeta de imágenes")
-    print("Carpeta seleccionada: ", image_folder)
     
-    # Se obtienen las imágenes de la carpeta
-    image_files = [f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'))]
-    
-    #Si no hay imágenes en la carpeta, se termina el programa
-    if len(image_files) == 0:
-        print("No hay imágenes en la carpeta seleccionada.")
-        quit()
-    
-    #Se pide la frase a buscar
+    # Se pide la frase a buscar
     frase = input("Introduce la frase a buscar: ")
     
-    #Se tokeniza la frase
+    # Se tokeniza la frase
     frase_tokenizada = model.encode(frase, convert_to_tensor=True)
     
-    #Se crea una lista para guardar los resultados
-    resultados = []
+    # Se busca en weaviate
+    results = client.query(f"{{GetFrase(frase: \"{frase}\"){{frase}}}}")
     
-    #Se recorren las imágenes
-    for image_file in image_files:
-        #Se obtiene la imagen
-        image_path = os.path.join(image_folder, image_file)
-        #Se obtiene el embedding de la imagen
-        imagen_embedding = model.encode(Image.open(image_path), convert_to_tensor=True)
-        #Se calcula la similitud entre la frase y la imagen
-        similitud = util.pytorch_cos_sim(frase_tokenizada, imagen_embedding)
-        #Se añade el resultado a la lista
-        resultados.append([image_file, similitud.item()])
+    # Se obtiene la imagen más parecida
+    imagen = results["data"]["GetFrase"][0]["frase"]
     
-    #Se ordenan los resultados de mayor a menor
-    resultados.sort(key=lambda x: x[1], reverse=True)
+    # Se muestra la imagen
+    image = Image.open(io.BytesIO(base64.b64decode(imagen)))
     
-    #Se muestra la imagen más similar
-    print("La imagen más similar es: ", resultados[0][0])
-    #Se abre la imagen
-    os.startfile(os.path.join(image_folder, resultados[0][0]))
 elif opcion == '3':
+    model = SentenceTransformer('clip-ViT-B-32')
+
+    # Get the path to the image folder
+    image_folder = filedialog.askdirectory(
+        title="Select the image folder")
+
+    # Get all images in the image folder and its subfolders
+    image_files = []
+    for root, dirs, files in os.walk(image_folder):
+        for file in files:
+            if file.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')):
+                image_files.append(os.path.join(root, file))
+
+    # If there are no images in the folder, exit the program
+    if len(image_files) == 0:
+        print("No images in the selected folder.")
+        quit()
+
+    # Get the phrase to search for
+    frase = input("Enter the phrase to search for: ")
+
+    # Tokenize the phrase
+    frase_tokenizada = model.encode(frase, convert_to_tensor=True)
+
+    # Create a list to store the results
+    resultados = []
+
+    # Iterate over the images
+    for image_file in image_files:
+        # Get the image path
+        image_path = os.path.join(image_folder, image_file)
+
+        # Get the image embedding
+        imagen_embedding = model.encode(Image.open(image_path), convert_to_tensor=True)
+
+        # Calculate the similarity between the phrase and the image
+        similitud = util.pytorch_cos_sim(frase_tokenizada, imagen_embedding)
+
+        # Add the result to the list
+        resultados.append([image_file, similitud.item()])
+
+    # Sort the results from highest to lowest similarity
+    resultados.sort(key=lambda x: x[1], reverse=True)
+
+    # Print the most similar image
+    print("The most similar image is: ", resultados[0][0])
+
+    # Open the image
+    os.startfile(os.path.join(image_folder, resultados[0][0]))
+elif opcion == '4':
     #se pide input para salir del programa
     input("Pulsa cualquier tecla para salir...")
