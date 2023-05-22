@@ -98,7 +98,7 @@ def clasificarImagenes(device, model, preprocess, image_folder, image_files, out
             os.makedirs(os.path.join(output_folder, predicted_label))
         shutil.move(image_path, os.path.join(
             output_folder, predicted_label, image_file))
-        print(f"{image_file} se ha movido a la carpeta {predicted_label}.")
+        print(f"{image_file} se ha movido de {image_path} a la carpeta {predicted_label}.")
         print("--------------------------------------------------")
 
     print("Proceso de clasificación de imágenes finalizado.")

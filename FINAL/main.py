@@ -30,7 +30,7 @@ if opcion == "1":
     labels, text = functions.hacerEtiquetas(device)
 
     # Se clasifican las imágenes
-    functions.clasificacionImagenes(device, model, preprocess, image_files, output_folder, labels, text)
+    functions.clasificarImagenes(device, model, preprocess, image_folder, image_files, output_folder, labels, text)
 
 elif opcion == '2':
     # Se carga el modelo
@@ -40,7 +40,7 @@ elif opcion == '2':
     carpetaImagenes, archivosImagenes = functions.obtenerImagenes()
 
     # Se buscan las imágenes
-    functions.busquedaDeImagenes(modelo, carpetaImagenes, archivosImagenes)
+    functions.busquedaDeImagen(modelo, carpetaImagenes, archivosImagenes)
 
 elif opcion == '3':
     #se pide input para salir del programa
