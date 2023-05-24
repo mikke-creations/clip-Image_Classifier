@@ -112,8 +112,7 @@ if opcion == "1":
         # Se mueve la imagen a la carpeta correspondiente
         if not os.path.exists(os.path.join(output_folder, predicted_label)):
             os.makedirs(os.path.join(output_folder, predicted_label))
-        shutil.move(image_path, os.path.join(
-            output_folder, predicted_label, image_file))
+        shutil.move(image_path, os.path.join(output_folder, predicted_label, image_file))
         print(f"{image_file} se ha movido a la carpeta {predicted_label}.")
         print("--------------------------------------------------")
 

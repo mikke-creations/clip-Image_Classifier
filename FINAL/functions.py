@@ -21,6 +21,31 @@ def cargarModeloClasificacion():
 
     return device, model, preprocess
 
+def obtenerImagenesClasificador():
+    # Se pide la carpeta de imágenes
+    image_folder = filedialog.askdirectory(
+        title="Selecciona la carpeta de imágenes")
+    print("Carpeta seleccionada: ", image_folder)
+
+    # Se obtienen las imágenes de la carpeta
+    image_files = [
+        f for f in os.listdir(image_folder) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'))
+    ]
+
+    # Si no hay imágenes en la carpeta, se termina el programa
+    if len(image_files) == 0:
+        print("No hay imágenes en la carpeta seleccionada.")
+        quit()
+
+    # Si no existe la carpeta "classified_images", se crea
+    if not os.path.exists(os.path.join(image_folder, "classified_images")):
+        os.makedirs(os.path.join(image_folder, "classified_images"))
+        print("Se ha creado la carpeta 'classified_images'.")
+
+    output_folder = os.path.join(image_folder, "classified_images")
+    
+    return image_folder, image_files, output_folder
+
 # Funcion Clasificación 2
 def crearCarpeta(image_folder):
     # Si no existe la carpeta "classified_images", se crea
@@ -33,10 +58,8 @@ def crearCarpeta(image_folder):
     return output_folder
 
 # Funcion Clasificación 3
-def hacerEtiquetas(device):
+def hacerEtiquetas(device,labels):
     # Se piden las etiquetas de las imágenes
-    labels = input(
-        "Introduce las etiquetas de las imágenes separadas por comas: ")
     labels = labels.split(",")
     labels = [label.strip() for label in labels]
 
@@ -54,18 +77,13 @@ def hacerEtiquetas(device):
     # Se muestran las etiquetas introducidas
     print("Etiquetas introducidas: ", labels)
 
-    # Se piden confirmación para continuar
-    confirm = input("¿Son correctas las etiquetas? (s/n): ")
-    if confirm.lower() != "s":
-        quit()
-
     # Se tokenizan las etiquetas obtenidas
     text = clip.tokenize(labels).to(device)
 
     return labels, text
 
 # Funcion Clasificación 4
-def clasificarImagenes(device, model, preprocess, image_folder, image_files, output_folder, labels, text):
+def clasificarImagenes(device, model, preprocess, image_folder, image_files, output_folder, labels, text, rate):
     print("Comienza el proceso de clasificación de imágenes...")
 
     for image_file in image_files:
@@ -81,7 +99,7 @@ def clasificarImagenes(device, model, preprocess, image_folder, image_files, out
             probs = logits_per_image.softmax(dim=-1).cpu().numpy()
 
         # Si el valor de probabilidad es menor a 0.9, se clasifica como "otro"
-        if probs[0, probs.argmax()] < 0.90:
+        if probs[0, probs.argmax()] < rate:
             predicted_label = "other"
         else:
             predicted_label = labels[probs.argmax()]
@@ -96,8 +114,7 @@ def clasificarImagenes(device, model, preprocess, image_folder, image_files, out
         # Se mueve la imagen a la carpeta correspondiente
         if not os.path.exists(os.path.join(output_folder, predicted_label)):
             os.makedirs(os.path.join(output_folder, predicted_label))
-        shutil.move(image_path, os.path.join(
-            output_folder, predicted_label, image_file))
+        shutil.move(image_path, os.path.join(output_folder, predicted_label, image_file))
         print(f"{image_file} se ha movido de {image_path} a la carpeta {predicted_label}.")
         print("--------------------------------------------------")
 
@@ -113,7 +130,7 @@ def cargarModeloConsulta():
     return model
 
 # Funcion Búsqueda 2
-def obtenerImagenes():
+def obtenerImagenesConsulta():
     # Se obtiene la carpeta de imágenes
     image_folder = filedialog.askdirectory(
         title="Selecciona la carpeta de imágenes")
@@ -133,9 +150,7 @@ def obtenerImagenes():
     return image_folder, image_files
 
 # Funcion Búsqueda 3
-def busquedaDeImagen(model, image_folder, image_files):
-    # Se pide la frase a buscar
-    frase = input("Introduce la frase a buscar: ")
+def busquedaDeImagen(frase, model, image_folder, image_files):
 
     # Se tokeniza la frase
     frase_tokenizada = model.encode(frase, convert_to_tensor=True)

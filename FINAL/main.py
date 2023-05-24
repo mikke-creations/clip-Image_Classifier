@@ -1,47 +1,51 @@
-import torch
-import glob
-import clip
-from PIL import Image
-from sentence_transformers import SentenceTransformer, util
-import os
-import shutil
-from tkinter import filedialog
 import functions
 
-##############################################################################################################
-# Menú para elegir si buscar una imagen o si clasificar una carpeta de imágenes
-print("¿Qué desea hacer?")
-print("1. Clasificar una carpeta de imágenes")
-print("2. Buscar una imagen")
-print("3. Salir")
-opcion = input("Introduce el número de la opción: ")
+correr = True
 
-if opcion == "1":
-    # Se cargan el modelo y el tokenizer
-    device, model, preprocess = functions.cargarModeloClasificacion()
+while correr:
+    ##############################################################################################################
+    # Menú para elegir si buscar una imagen o si clasificar una carpeta de imágenes
+    print("¿Qué desea hacer?")
+    print("1. Clasificar una carpeta de imágenes")
+    print("2. Buscar una imagen")
+    print("3. Salir")
+    opcion = input("Introduce el número de la opción: ")
 
-    # Se pide la carpeta de imágenes
-    image_folder, image_files = functions.obtenerImagenes()
+    if opcion == "1":
+        # Se cargan el modelo y el tokenizer
+        device, model, preprocess = functions.cargarModeloClasificacion()
 
-    # Si no existe la carpeta "classified_images", se crea
-    output_folder = functions.crearCarpeta(image_folder)
+        # Se pide la carpeta de imágenes
+        image_folder, image_files, output_folder = functions.obtenerImagenesClasificador()
 
-    # Se piden las etiquetas de las imágenes
-    labels, text = functions.hacerEtiquetas(device)
+        # Si no existe la carpeta "classified_images", se crea
+        output_folder = functions.crearCarpeta(image_folder)
 
-    # Se clasifican las imágenes
-    functions.clasificarImagenes(device, model, preprocess, image_folder, image_files, output_folder, labels, text)
+        # Se piden las etiquetas de las imágenes
+        labels = input(
+            "Introduce las etiquetas de las imágenes separadas por comas: ")
+        
+        # Se piden las etiquetas de las imágenes
+        labels, text = functions.hacerEtiquetas(device, labels)
 
-elif opcion == '2':
-    # Se carga el modelo
-    modelo = functions.cargarModeloConsulta()
+        # Se clasifican las imágenes
+        functions.clasificarImagenes(device, model, preprocess, image_folder, image_files, output_folder, labels, text, 0.9)
 
-    # Se pide la carpeta de imágenes
-    carpetaImagenes, archivosImagenes = functions.obtenerImagenes()
+    elif opcion == '2':
+        # Se carga el modelo
+        modelo = functions.cargarModeloConsulta()
 
-    # Se buscan las imágenes
-    functions.busquedaDeImagen(modelo, carpetaImagenes, archivosImagenes)
+        # Se pide la carpeta de imágenes
+        carpetaImagenes, archivosImagenes = functions.obtenerImagenesConsulta()
 
-elif opcion == '3':
-    #se pide input para salir del programa
-    input("Pulsa cualquier tecla para salir...")
+        # Se pide la frase a buscar
+        frase = input("Introduce la frase a buscar: ")
+
+        # Se buscan las imágenes
+        functions.busquedaDeImagen(frase, modelo, carpetaImagenes, archivosImagenes)
+
+    elif opcion == '3':
+        #se pide input para salir del programa
+        input("Pulsa cualquier tecla para salir...")
+        correr = False
+    
