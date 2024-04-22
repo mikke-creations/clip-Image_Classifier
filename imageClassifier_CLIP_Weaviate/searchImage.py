@@ -4,6 +4,7 @@ import base64
 import weaviate
 from sentence_transformers import SentenceTransformer, util
 import io
+##############################################################################################################
 
 # initiate the Weaviate client
 client = weaviate.Client("http://localhost:8080")

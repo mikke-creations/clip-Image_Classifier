@@ -6,7 +6,9 @@ from sentence_transformers import SentenceTransformer, util
 import os
 import shutil
 from tkinter import filedialog
+
 ##############################################################################################################
+
 # Funcion Clasificación 1
 def cargarModeloClasificacion():
     # Se carga el modelo y el tokenizer

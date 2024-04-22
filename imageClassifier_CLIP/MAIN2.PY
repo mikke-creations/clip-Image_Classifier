@@ -6,8 +6,8 @@ from sentence_transformers import SentenceTransformer, util
 import os
 import shutil
 from tkinter import filedialog
-
 ##############################################################################################################
+
 # Menú para elegir si buscar una imagen o si clasificar una carpeta de imágenes
 print("¿Qué desea hacer?")
 print("1. Clasificar una carpeta de imágenes")

@@ -1,6 +1,8 @@
 import functions
 import tkinter as tk
 
+##############################################################################################################
+
 def clasificar_carpeta(labels):
     # Se cargan el modelo y el tokenizer
     device, model, preprocess = functions.cargarModeloClasificacion()

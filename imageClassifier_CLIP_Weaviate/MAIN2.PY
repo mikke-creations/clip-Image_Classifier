@@ -8,7 +8,8 @@ from tkinter import filedialog
 import base64
 import weaviate
 import io
-
+##############################################################################################################
+##############################################################################################################
 # initiate the Weaviate client
 client = weaviate.Client("http://localhost:8080")
 # Se crea una lista para las imagenes que se subiran a weaviate
